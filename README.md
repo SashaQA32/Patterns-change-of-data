@@ -1,0 +1,1 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/we81shvidp0jl8ki?svg=true)](https://ci.appveyor.com/project/SashaQA32/patterns-change-of-data)
