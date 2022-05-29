@@ -1,8 +1,9 @@
 package ru.netology.test;
 
 import com.codeborne.selenide.Condition;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import com.codeborne.selenide.logevents.SelenideLogger;
+import io.qameta.allure.selenide.AllureSelenide;
+import org.junit.jupiter.api.*;
 import org.openqa.selenium.Keys;
 import ru.netology.data.GeneratorDataCardOrder;
 
@@ -16,12 +17,23 @@ import static ru.netology.data.GeneratorDataCardOrder.getUserInfo;
 public class OrderDeliveryCardTest {
     GeneratorDataCardOrder.UserInfo user = getUserInfo();
 
+    @BeforeAll
+    static void setUpAll() {
+        SelenideLogger.addListener("allure", new AllureSelenide());
+    }
+
+    @AfterAll
+    static void tearDownAll() {
+        SelenideLogger.removeListener("allure");
+    }
+
     @BeforeEach
     public void setUp() {
         open("http://localhost:9999/");
     }
 
     @Test
+    @DisplayName("Успешная перепланировка даты")
     public void shouldReturnValidValueIfChangeDate() {
 
         $("[placeholder='Город']").setValue(user.getCity());
@@ -52,6 +64,21 @@ public class OrderDeliveryCardTest {
                 .shouldBe(Condition.visible);
         $("[data-test-id='success-notification'] > .notification__content")
                 .shouldHave(exactText("Встреча успешно запланирована на " + user.getDateRescheduling()))
+                .shouldBe(Condition.visible);
+    }
+
+    @Test
+    @DisplayName("Получить ошибку при вводе не верного номера телефона")
+    void shouldGetErrorIfInvalidPhoneNumber() {
+        $("[placeholder='Город']").setValue(user.getCity());
+        $("[placeholder='Дата встречи']").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
+        $("[placeholder='Дата встречи']").setValue(user.getMeetingDate());
+        $("[name='name']").setValue(user.getFullName());
+        $("[name='phone']").setValue("7614");
+        $(".checkbox__box").click();
+        $(withText("Запланировать")).click();
+        $("[data-test-id='phone']")
+                .shouldHave(text("Номер телефона введен не полностью. Проверьте, что номер ваш и введен корректно."))
                 .shouldBe(Condition.visible);
     }
 }
